@@ -167,10 +167,10 @@ if __name__ == "__main__":
     print(editdistance.eval('banana', 'bahama'))
     print(editdistance.eval('bahama', 'banana'))
        
-    string_a = [str(x) for x in range(9, -1, -1)]  # randomString(200)
+    string_a = [str(x) for x in range(99, -1, -1)]  # randomString(200)
     
 
-    string_b = [str(x) for x in range(9, -1, -1)] #randomString(200)
+    string_b = [str(x) for x in range(99, -1, -1)] #randomString(200)
 
     output1, output2 = needleman_wunsch(string_a, string_b)
     end = time.time()
