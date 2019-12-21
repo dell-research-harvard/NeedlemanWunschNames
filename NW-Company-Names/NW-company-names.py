@@ -101,8 +101,8 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1, match_award = 1, mismatch_pen
     # Traceback and compute the alignment 
     
     # Create variables to store alignment
-    align1 = ""
-    align2 = ""
+    align1 = []
+    align2 = []
     
     # Start from the bottom right cell in matrix
     i = m
@@ -118,43 +118,33 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1, match_award = 1, mismatch_pen
         # Check to figure out which cell the current score was calculated from,
         # then update i and j to correspond to that cell.
         if score_current == score_diagonal + match_score(seq1[j-1], seq2[i-1]):
-            align1 += seq1[j-1]
-            align2 += seq2[i-1]
-            align1 += " "
-            align2 += " "
+            align1 += [seq1[j-1]]
+            align2 += [seq2[i-1]]
             i -= 1
             j -= 1
         elif score_current == score_up + gap_penalty:
-            align1 += seq1[j-1]
-            align2 += '-'
-            align1 += " "
-            align2 += " "
+            align1 += [seq1[j-1]]
+            align2 += ['-']
             j -= 1
         elif score_current == score_left + gap_penalty:
-            align1 += '-'
-            align2 += seq2[i-1]
-            align1 += " "
-            align2 += " "
+            align1 += ['-']
+            align2 += [seq2[i-1]]
             i -= 1
 
     # Finish tracing up to the top left cell
     while j > 0:
-        align1 += seq1[j-1]
-        align2 += '-'
-        align1 += " "
-        align2 += " "
+        align1 += [seq1[j-1]]
+        align2 += ['-']
         j -= 1
     while i > 0:
-        align1 += '-'
-        align2 += seq2[i-1]
-        align1 += " "
-        align2 += " "
+        align1 += ['-']
+        align2 += [seq2[i-1]]
         i -= 1
     
     # Since we traversed the score matrix from the bottom right, our two sequences will be reversed.
     # These two lines reverse the order of the characters in each sequence.
-    # align1 = align1[::-1]
-    # align2 = align2[::-1]
+    align1 = align1[::-1]
+    align2 = align2[::-1]
     print("Scoring Matrix:")
     print(pd.DataFrame(score))
 
@@ -164,13 +154,11 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1, match_award = 1, mismatch_pen
 if __name__ == "__main__":
     start = time.time()
 
-    print(editdistance.eval('banana', 'bahama'))
-    print(editdistance.eval('bahama', 'banana'))
        
-    string_a = [str(x) for x in range(99, -1, -1)]  # randomString(200)
+    string_a = [str(x) for x in range(10)]  # randomString(200)
     
 
-    string_b = [str(x) for x in range(99, -1, -1)] #randomString(200)
+    string_b = [str(x) for x in range(10)] #randomString(200)
 
     output1, output2 = needleman_wunsch(string_a, string_b)
     end = time.time()
