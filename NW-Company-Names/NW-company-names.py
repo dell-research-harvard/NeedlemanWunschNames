@@ -1,67 +1,22 @@
 import numpy as np
-from random import choice, choices, randrange
-import string
 import time
 import editdistance
 import pandas as pd
 from math import isnan
-wide_df = pd.read_csv("tmo.csv")
-index_df = pd.read_csv("company-index-names-initial-experiment-ed.csv")
-
-def randomString(stringLength=10):
-    """Generate a random string of fixed length """
-    letters = string.ascii_lowercase
-    return ''.join(choice(letters) for i in range(stringLength))
 
 
-def match_score(alpha, beta, gap_penalty = -1, match_award = 1, mismatch_penalty = -1):
-    
-#     company_alphas = [ # This is the index
-#   "アース商會",                
-#   "アイエ書店",                
-#   "アイゼンベルグ商會",       
-#   "アイデアル石鹸",          
-#   "アイデン",                  
-#   "アコマ醫科工業",            
-#   "アサノコンクリート",       
-#   "アサヒイブニングニュース祉",
-#   "アサヒ藝能新聞社",          
-#  "アサヒ商店"
-#     ]
-
-    company_alphas = wide_df["company name"].tolist()
-
-#     company_betas = [ # This is the book
-#           "アース商會",                
-#   "アイエ書店",                
-# #   "アイゼンベルグ商會", FAKING SKIPPED COMPANY - should skip digit 2       
-#   "アイデアル石鹸",          
-#   "アイデン",                  
-#   "アコマ醫科工業",            
-#   "アサノコンクリート",       
-#   "アサヒイブニングニュース祉",
-#   "アサヒ藝能新聞社",          
-#  "アサヒ商店"
-
-#     ]
-
-    company_betas = index_df["text"].tolist()
-
-
-    if alpha == '-' or beta == '-':
+def match_score(alpha, beta):
+    if alpha == '------' or beta == '------':
         return gap_penalty
     else:
-        alpha = int(alpha)
-        beta = int(beta)
-
-        c_a = company_alphas[alpha]
-        c_b = company_betas[beta]
-        # print(c_a, "------", c_b)
-
-        if  isinstance(c_a, float):
+        # If GCV skips a row it returns nan in pandas which this catches
+        # TODO: improve logic so that actual floats in company names (unlikely)
+        # are handled
+        if  isinstance(alpha, float):
             return 0
-        distance = editdistance.eval(c_a, c_b) / max(len(c_a), len(c_b))
-        
+        # Normalise distance so lies in [0, 1]
+        distance = editdistance.eval(alpha, beta) / max(len(alpha), len(beta))
+        # Distance is a cost so times -1
         return -1 * distance
 
 
@@ -69,7 +24,7 @@ def match_score(alpha, beta, gap_penalty = -1, match_award = 1, mismatch_penalty
 
 
 
-def needleman_wunsch(seq1, seq2, gap_penalty = -1, match_award = 1, mismatch_penalty = -1):
+def needleman_wunsch(seq1, seq2, gap_penalty = -1):
     
     # Store length of two sequences
     n = len(seq1)  
@@ -124,20 +79,20 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1, match_award = 1, mismatch_pen
             j -= 1
         elif score_current == score_up + gap_penalty:
             align1 += [seq1[j-1]]
-            align2 += ['-']
+            align2 += ['------']
             j -= 1
         elif score_current == score_left + gap_penalty:
-            align1 += ['-']
+            align1 += ['------']
             align2 += [seq2[i-1]]
             i -= 1
 
     # Finish tracing up to the top left cell
     while j > 0:
         align1 += [seq1[j-1]]
-        align2 += ['-']
+        align2 += ['------']
         j -= 1
     while i > 0:
-        align1 += ['-']
+        align1 += ['------']
         align2 += [seq2[i-1]]
         i -= 1
     
@@ -148,23 +103,30 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1, match_award = 1, mismatch_pen
     print("Scoring Matrix:")
     print(pd.DataFrame(score))
 
-    return(align1, align2)
+    align_df = pd.DataFrame()
+    align_df["Sequence 1"] = align1
+    align_df["Sequence 2"] = align2
+    return(align_df)
 
 
 if __name__ == "__main__":
+    wide_df = pd.read_csv("tmo.csv")
+    index_df = pd.read_csv("company-index-names-initial-experiment-ed.csv")
+
     start = time.time()
-
-       
-    string_a = [str(x) for x in range(10)]  # randomString(200)
     
+    
+    company_alphas = wide_df["company name"].tolist()
+    company_betas = index_df["text"].tolist()
 
-    string_b = [str(x) for x in range(10)] #randomString(200)
+    company_alphas = company_alphas[0:100]
+    company_betas = company_betas[0:100]
+       
+    print(company_alphas)
 
-    output1, output2 = needleman_wunsch(string_a, string_b)
+    output1 = needleman_wunsch(company_alphas, company_betas)
     end = time.time()
     print("Time Taken:", end - start)
-    print("Book Sequence: ", output1)
-    print("Index Sequence:", output2)
+    print(output1)
     
-    print(wide_df.loc[0:9, "company name"])
-    print(index_df.loc[0:9, "text"])
+    
