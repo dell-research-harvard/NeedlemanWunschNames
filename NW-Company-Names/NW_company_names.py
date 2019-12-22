@@ -5,25 +5,11 @@ import pandas as pd
 from math import isnan
 
 
-def match_score(alpha, beta, gap_penalty = -1):
-    if alpha == '------' or beta == '------':
-        return gap_penalty
-    else:
-        # If GCV skips a row it returns nan in pandas which this catches
-        # TODO: improve logic so that actual floats in company names (unlikely)
-        # are handled
-        if  isinstance(alpha, float):
-            return 0
-        # Normalise distance so lies in [0, 1]
-        distance = editdistance.eval(alpha, beta) / max(len(alpha), len(beta))
-        # Distance is a cost so times -1
-        return -1 * distance
-
 
 
 def match_score_df(alpha, beta, company_df, index_df, gap_penalty = -1):
-    c_a = company_df.loc[alpha, "company name"]
-    c_b = index_df.loc[beta, "text"]
+    c_a = company_df.loc[alpha, "sequence_text"]
+    c_b = index_df.loc[beta, "sequence_text"]
 
     if c_a == '------' or c_b == '------':
         return gap_penalty
@@ -122,43 +108,47 @@ def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty = -1):
     print(pd.DataFrame(score))
 
     align_df = pd.DataFrame()
-    align_df["Sequence 1"] = align1
-    align_df["Sequence 2"] = align2
+    align_df["sequence_1"] = align1
+    align_df["sequence_2"] = align2
     return(align_df)
 
 
 
+def create_nw_df(df1, df2, col1, col2):
+    # Creating indices in original DFs
+    df1["sequence_1"] = np.arange(len(df1))
+    df2["sequence_2"] = np.arange(len(df2))
+    # Renaming columns for NW()
+    df1 = df1.rename(columns = {col1 : "sequence_text"}, errors = "raise")
+    df2 = df2.rename(columns = {col2 : "sequence_text"}, errors = "raise")
+    # Running algorithm
+    nw_output = needleman_wunsch_df(df1["sequence_1"], df2["sequence_2"], df1, df2)
+    # Combining output
+    joint_df = nw_output.merge(
+        df1,
+        on = "sequence_1",
+        how = "left"
+    )
+    joint_df = joint_df.merge(
+        df2,
+        on = "sequence_2",
+        how = "left"
+    )
+    return joint_df
+
 if __name__ == "__main__":
+    pd.options.display.max_rows = 200
+
     wide_df = pd.read_csv("tmo.csv")
     index_df = pd.read_csv("company-index-names-initial-experiment-ed.csv")
-    wide_df["Sequence 1"] = np.arange(len(wide_df))
-    index_df["Sequence 2"] = np.arange(len(index_df))
+    
     start = time.time()
-    
-    
-    company_alphas = wide_df["company name"].tolist()
-    company_betas = index_df["text"].tolist()
-
-    company_alphas = company_alphas[0:100]
-    company_betas = company_betas[0:100]
-       
-    print(company_alphas)
-
-    pd.options.display.max_rows = 200
-    output1 = needleman_wunsch_df(wide_df["Sequence 1"], index_df["Sequence 2"], wide_df, index_df)
-
-
-    joint_df = output1.merge(wide_df,
-                             on = "Sequence 1",
-                             how = "left")
-
-    joint_df = joint_df.merge(index_df,
-                              on = "Sequence 2",
-                              how = "left")
-    print(joint_df)
+    all_joint_df = create_nw_df(wide_df, index_df, "company name", "text")
+    print(all_joint_df)
 
     end = time.time()
     print("Time Taken:", end - start)
-    # print(output1)
+
+
     
     
