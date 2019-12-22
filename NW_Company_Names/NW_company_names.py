@@ -18,7 +18,11 @@ def match_score_df(alpha, beta, company_df, index_df, gap_penalty = -1):
         # TODO: improve logic so that actual floats in company names (unlikely)
         # are handled
         if  isinstance(c_a, float):
-            return 0
+            if isnan(c_a):
+                return 0
+        if isinstance(c_b, float):
+            if isnan(c_b):
+                return 0
         # Normalise distance so lies in [0, 1]
         distance = editdistance.eval(c_a, c_b) / max(len(c_a), len(c_b))
         # Distance is a cost so times -1
@@ -119,8 +123,8 @@ def create_nw_df(df1, df2, col1, col2):
     df1["sequence_1"] = np.arange(len(df1))
     df2["sequence_2"] = np.arange(len(df2))
     # Renaming columns for NW()
-    df1 = df1.rename(columns = {col1 : "sequence_text"}, errors = "raise")
-    df2 = df2.rename(columns = {col2 : "sequence_text"}, errors = "raise")
+    df1 = df1.rename(columns = {col1 : "sequence_text"}, errors = "raise").reset_index(drop = True)
+    df2 = df2.rename(columns = {col2 : "sequence_text"}, errors = "raise").reset_index(drop = True)
     # Running algorithm
     nw_output = needleman_wunsch_df(df1["sequence_1"], df2["sequence_2"], df1, df2)
     # Combining output
