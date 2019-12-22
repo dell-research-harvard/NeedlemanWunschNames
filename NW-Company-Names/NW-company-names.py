@@ -5,7 +5,7 @@ import pandas as pd
 from math import isnan
 
 
-def match_score(alpha, beta):
+def match_score(alpha, beta, gap_penalty = -1):
     if alpha == '------' or beta == '------':
         return gap_penalty
     else:
@@ -125,18 +125,6 @@ def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty = -1):
     align_df["Sequence 1"] = align1
     align_df["Sequence 2"] = align2
     return(align_df)
-
-
-
-
-
-# def expand_df(df, company_name_col = "company_name", index_name_col = "index_name"):
-
-
-#     company_name_sequence = df[company_name_col].tolist()
-#     index_name_sequence = df[index_name_col].tolist()
-
-#     corrected_sequence_output = needleman_wunsch(company_name_sequence, index_name_sequence)
 
 
 
