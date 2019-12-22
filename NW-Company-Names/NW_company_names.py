@@ -5,7 +5,7 @@ import pandas as pd
 from math import isnan
 
 
-def match_score(alpha, beta):
+def match_score(alpha, beta, gap_penalty = -1):
     if alpha == '------' or beta == '------':
         return gap_penalty
     else:
@@ -21,10 +21,28 @@ def match_score(alpha, beta):
 
 
 
+def match_score_df(alpha, beta, company_df, index_df, gap_penalty = -1):
+    c_a = company_df.loc[alpha, "company name"]
+    c_b = index_df.loc[beta, "text"]
+
+    if c_a == '------' or c_b == '------':
+        return gap_penalty
+    else:
+        # If GCV skips a row it returns nan in pandas which this catches
+        # TODO: improve logic so that actual floats in company names (unlikely)
+        # are handled
+        if  isinstance(c_a, float):
+            return 0
+        # Normalise distance so lies in [0, 1]
+        distance = editdistance.eval(c_a, c_b) / max(len(c_a), len(c_b))
+        # Distance is a cost so times -1
+        return -1 * distance
 
 
 
-def needleman_wunsch(seq1, seq2, gap_penalty = -1):
+
+
+def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty = -1):
     
     # Store length of two sequences
     n = len(seq1)  
@@ -47,7 +65,7 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1):
     for i in range(1, m + 1):
         for j in range(1, n + 1):
             # Calculate the score by checking the top, left, and diagonal cells
-            match = score[i - 1][j - 1] + match_score(seq1[j-1], seq2[i-1])
+            match = score[i - 1][j - 1] + match_score_df(seq1[j-1], seq2[i-1], company_df, index_df)
             delete = score[i - 1][j] + gap_penalty
             insert = score[i][j - 1] + gap_penalty
             # Record the maximum score from the three possible scores calculated above
@@ -72,7 +90,7 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1):
         
         # Check to figure out which cell the current score was calculated from,
         # then update i and j to correspond to that cell.
-        if score_current == score_diagonal + match_score(seq1[j-1], seq2[i-1]):
+        if score_current == score_diagonal + match_score_df(seq1[j-1], seq2[i-1], company_df, index_df):
             align1 += [seq1[j-1]]
             align2 += [seq2[i-1]]
             i -= 1
@@ -109,10 +127,12 @@ def needleman_wunsch(seq1, seq2, gap_penalty = -1):
     return(align_df)
 
 
+
 if __name__ == "__main__":
     wide_df = pd.read_csv("tmo.csv")
     index_df = pd.read_csv("company-index-names-initial-experiment-ed.csv")
-
+    wide_df["Sequence 1"] = np.arange(len(wide_df))
+    index_df["Sequence 2"] = np.arange(len(index_df))
     start = time.time()
     
     
@@ -124,9 +144,21 @@ if __name__ == "__main__":
        
     print(company_alphas)
 
-    output1 = needleman_wunsch(company_alphas, company_betas)
+    pd.options.display.max_rows = 200
+    output1 = needleman_wunsch_df(wide_df["Sequence 1"], index_df["Sequence 2"], wide_df, index_df)
+
+
+    joint_df = output1.merge(wide_df,
+                             on = "Sequence 1",
+                             how = "left")
+
+    joint_df = joint_df.merge(index_df,
+                              on = "Sequence 2",
+                              how = "left")
+    print(joint_df)
+
     end = time.time()
     print("Time Taken:", end - start)
-    print(output1)
+    # print(output1)
     
     
