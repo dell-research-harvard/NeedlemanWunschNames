@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
 import time
+import string
+import regex
 from NW_Company_Names.NW_company_names import create_nw_df 
 
 
-N = 10
-pd.options.display.max_rows = int(round(N * 1.1))
+N = 2000
+pd.options.display.max_rows = int(round(N * 1.5))
 
 
 
@@ -15,51 +17,31 @@ wide_df = pd.read_csv("PR1954_clean_wide_numeric_pipeline.csv")
 firm_wide_df = wide_df[wide_df["companyid"].str.contains("firm")]
 firm_index_df = index_df[index_df["data_source_type"] == "firm"]
 firm_index_df = firm_index_df.reset_index()
+# Removing digits
+firm_index_df["clean_text"] = firm_index_df["text"].str.replace(r"\d+", "")
+# Removing Latin Characters
+firm_index_df["clean_text"] = firm_index_df["clean_text"].apply(lambda x: regex.sub(r"\p{Latin}", u"", str(x)))
+# Removing punctuation
+firm_index_df["clean_text"] = firm_index_df["clean_text"].apply(lambda x: regex.sub(r"\p{Punct}", u"", str(x)))
+firm_index_df["clean_text"] = firm_index_df["clean_text"].apply(lambda x: regex.sub(r"\|", u"", str(x)))
+# Resetting index and sorting by companyid
 firm_wide_df = firm_wide_df.reset_index()
 firm_wide_df = firm_wide_df.sort_values(by = ["companyid"])
-print(firm_index_df.head())
-print(firm_wide_df.head())
-start = time.time()
 
+
+# Timing
+start = time.time()
 init_df = create_nw_df(
     firm_wide_df[0:N],
-    firm_index_df[0:(N)],
+    firm_index_df[0:int(round(N * 1.1))],
     "company name",
-    "text"
+    "clean_text"
 )
 
 
 end = time.time()
+
+init_df.to_csv("PR1954_matched_index_df.csv")
+
 print(init_df[["sequence_1", "sequence_2", "sequence_text_x", "sequence_text_y"]])
 print("Time Taken:", end - start)
-
-
-print("----------- ipy ------------")
-
-english_df = pd.DataFrame()
-english_df["index"] = ["Amazann", "Boyer", "Camcoost", "Ebat"]
-english_df["book"] = ["mzon", "Coast", "Deutsche k", "dbay"]
-print(english_df)
-
-
-
-
-
-english_nw_df = create_nw_df(
-    english_df[0:4],
-    english_df[0:4],
-    "index",
-    "book",
-    gap_penalty = -0.5
-)
-
-print(english_nw_df[["sequence_1", "sequence_2", "sequence_text_x", "sequence_text_y"]])
-print(pd.__version__)
-
-
-
-
-
-
-
-
