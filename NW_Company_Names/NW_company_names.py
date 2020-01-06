@@ -7,7 +7,7 @@ from math import isnan
 
 
 
-def match_score_df(alpha, beta, company_df, index_df, gap_penalty = -1):
+def match_score_df(alpha, beta, company_df, index_df):
     c_a = company_df.loc[alpha, "sequence_text"]
     c_b = index_df.loc[beta, "sequence_text"]
 
@@ -32,7 +32,7 @@ def match_score_df(alpha, beta, company_df, index_df, gap_penalty = -1):
 
 
 
-def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty = -1):
+def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty):
     
     # Store length of two sequences
     n = len(seq1)  
@@ -118,7 +118,7 @@ def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty = -1):
 
 
 
-def create_nw_df(df1, df2, col1, col2):
+def create_nw_df(df1, df2, col1, col2, gap_penalty = -1):
     # Creating indices in original DFs
     df1["sequence_1"] = np.arange(len(df1))
     df2["sequence_2"] = np.arange(len(df2))
@@ -126,7 +126,7 @@ def create_nw_df(df1, df2, col1, col2):
     df1 = df1.rename(columns = {col1 : "sequence_text"}, errors = "raise").reset_index(drop = True)
     df2 = df2.rename(columns = {col2 : "sequence_text"}, errors = "raise").reset_index(drop = True)
     # Running algorithm
-    nw_output = needleman_wunsch_df(df1["sequence_1"], df2["sequence_2"], df1, df2)
+    nw_output = needleman_wunsch_df(df1["sequence_1"], df2["sequence_2"], df1, df2, gap_penalty = gap_penalty)
     # Combining output
     joint_df = nw_output.merge(
         df1,
