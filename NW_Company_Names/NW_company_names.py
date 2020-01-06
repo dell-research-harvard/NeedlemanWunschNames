@@ -19,10 +19,10 @@ def match_score_df(alpha, beta, company_df, index_df, gap_penalty):
         # are handled
         if  isinstance(c_a, float):
             if isnan(c_a):
-                return 0
+                return -1
         if isinstance(c_b, float):
             if isnan(c_b):
-                return 0
+                return -1
         # Normalise distance so lies in [0, 1]
         distance = editdistance.eval(c_a, c_b) / max(len(c_a), len(c_b))
         # Distance is a cost so times -1
