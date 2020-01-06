@@ -7,7 +7,7 @@ from math import isnan
 
 
 
-def match_score_df(alpha, beta, company_df, index_df):
+def match_score_df(alpha, beta, company_df, index_df, gap_penalty):
     c_a = company_df.loc[alpha, "sequence_text"]
     c_b = index_df.loc[beta, "sequence_text"]
 
@@ -19,10 +19,10 @@ def match_score_df(alpha, beta, company_df, index_df):
         # are handled
         if  isinstance(c_a, float):
             if isnan(c_a):
-                return 0
+                return -1
         if isinstance(c_b, float):
             if isnan(c_b):
-                return 0
+                return -1
         # Normalise distance so lies in [0, 1]
         distance = editdistance.eval(c_a, c_b) / max(len(c_a), len(c_b))
         # Distance is a cost so times -1
@@ -55,7 +55,7 @@ def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty):
     for i in range(1, m + 1):
         for j in range(1, n + 1):
             # Calculate the score by checking the top, left, and diagonal cells
-            match = score[i - 1][j - 1] + match_score_df(seq1[j-1], seq2[i-1], company_df, index_df)
+            match = score[i - 1][j - 1] + match_score_df(seq1[j-1], seq2[i-1], company_df, index_df, gap_penalty)
             delete = score[i - 1][j] + gap_penalty
             insert = score[i][j - 1] + gap_penalty
             # Record the maximum score from the three possible scores calculated above
@@ -80,7 +80,7 @@ def needleman_wunsch_df(seq1, seq2, company_df, index_df,  gap_penalty):
         
         # Check to figure out which cell the current score was calculated from,
         # then update i and j to correspond to that cell.
-        if score_current == score_diagonal + match_score_df(seq1[j-1], seq2[i-1], company_df, index_df):
+        if score_current == score_diagonal + match_score_df(seq1[j-1], seq2[i-1], company_df, index_df, gap_penalty):
             align1 += [seq1[j-1]]
             align2 += [seq2[i-1]]
             i -= 1
