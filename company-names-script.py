@@ -3,16 +3,19 @@ import numpy as np
 import time
 import string
 import regex
+import argparse
 from NW_Company_Names.NW_company_names import create_nw_df 
 
 
-N = 2000
-pd.options.display.max_rows = int(round(N * 1.5))
 
+parser = argparse.ArgumentParser(description="Match sequences of company names.")
+parser.add_argument("index_csv", type = argparse.FileType("r"), help = "CSV with index name data")
+parser.add_argument("book_csv", type = argparse.FileType("r"), help = "CSV with company name data")
+parser.add_argument("output_csv", type = argparse.FileType("w"), help = "Output name")
+args = parser.parse_args()
 
-
-index_df = pd.read_csv("summarised_PR1954_index.csv")
-wide_df = pd.read_csv("PR1954_clean_wide_numeric_pipeline.csv")
+index_df = pd.read_csv(args.index_csv)
+wide_df = pd.read_csv(args.book_csv)
 
 firm_wide_df = wide_df[wide_df["companyid"].str.contains("firm")]
 firm_index_df = index_df[index_df["data_source_type"] == "firm"]
@@ -32,8 +35,8 @@ firm_wide_df = firm_wide_df.sort_values(by = ["companyid"])
 # Timing
 start = time.time()
 init_df = create_nw_df(
-    firm_wide_df[0:N],
-    firm_index_df[0:int(round(N * 1.1))],
+    firm_wide_df,
+    firm_index_df,
     "company name",
     "clean_text"
 )
@@ -41,7 +44,7 @@ init_df = create_nw_df(
 
 end = time.time()
 
-init_df.to_csv("PR1954_matched_index_df.csv")
+init_df.to_csv(args.output_csv)
 
 print(init_df[["sequence_1", "sequence_2", "sequence_text_x", "sequence_text_y"]])
 print("Time Taken:", end - start)
