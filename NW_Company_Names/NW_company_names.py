@@ -129,7 +129,7 @@ def create_nw_df(df1, df2, col1, col2, gap_penalty = -1):
     nw_output = needleman_wunsch_df(df1["sequence_1"], df2["sequence_2"], df1, df2, gap_penalty = gap_penalty)
     # Combining output
     joint_df = nw_output.merge(
-        df1,
+        df1.drop(columns=['data_source_type']), # since data source present in both dfs
         on = "sequence_1",
         how = "left"
     )
