@@ -11,7 +11,6 @@ parser = argparse.ArgumentParser(description="Match sequences of company names."
 parser.add_argument("index_csv", type = argparse.FileType("r"), help = "CSV with index name data")
 parser.add_argument("book_csv", type = argparse.FileType("r"), help = "CSV with company name data")
 parser.add_argument("output_csv", type = argparse.FileType("w"), help = "Output name")
-parser.add_argument("--data_source_type", type = str, help = "data source type (defaults to firm)", default="firm")
 parser.add_argument("--nrows", type = int, help = "nrow to use", default=None)
 parser.add_argument("--gap_penalty", type = float, help = "gap penalty size", default=-1)
 parser.add_argument("--index_col", type = str, help = "index text column name", default="index_text")
@@ -24,8 +23,7 @@ def NW_align_names(index_csv,
                    index_col,
                    book_col,
                    nrows = None,
-                   gap_penalty = -1,
-                   data_source_type = "firm"):
+                   gap_penalty = -1):
     """
     Aligns two sequences of company names using edit distance as a cost metric and the
     Needleman-Wunsch .algorithm
@@ -36,7 +34,6 @@ def NW_align_names(index_csv,
         output_csv {str} -- Output csv path
 
     Keyword Arguments:
-        data_source_type {str} -- which data source type to match (firms from
         index, bank, supplement etc.) (default: {"firm"})
         nrows {int} -- Number of rows to use, defaults to None.
         gap_penalty {float} How large to penalise the algorithm for introducing a gap.
@@ -85,8 +82,7 @@ if __name__ == "__main__":
         index_col = args.index_col,
         book_col = args.book_col,
         nrows = args.nrows,
-        gap_penalty = args.gap_penalty,
-        data_source_type = args.data_source_type
+        gap_penalty = args.gap_penalty
     )
     end = time.time()
 print(init_df[["sequence_1", "sequence_2", "sequence_text_x", "sequence_text_y"]])
