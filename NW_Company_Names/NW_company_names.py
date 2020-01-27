@@ -127,9 +127,11 @@ def create_nw_df(df1, df2, col1, col2, gap_penalty = -1):
     df2 = df2.rename(columns = {col2 : "sequence_text"}, errors = "raise").reset_index(drop = True)
     # Running algorithm
     nw_output = needleman_wunsch_df(df1["sequence_1"], df2["sequence_2"], df1, df2, gap_penalty = gap_penalty)
+
     # Combining output
     joint_df = nw_output.merge(
-        df1.drop(columns=['data_source_type']), # since data source present in both dfs
+        df1.drop(columns=['data_source_type'],
+                 errors='ignore'), # since data source present in both dfs occasionally
         on = "sequence_1",
         how = "left"
     )
