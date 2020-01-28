@@ -42,7 +42,7 @@ def NW_align_names(index_csv,
     
     Returns:
         [Pandas DataFrame] -- Pandas DF with matched sequences and respective
-        indices.
+        indices. sequence_text_x is the book and sequence_text_y the index
     """
     index_df = pd.read_csv(index_csv,   nrows = nrows)
     book_df = pd.read_csv(book_csv, nrows = nrows)    
