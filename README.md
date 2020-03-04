@@ -1,7 +1,9 @@
+
+# Needleman Wunsch Names
+
 [![Example Jupyter
 Notebook](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/EdJeeOnGitHub/NeedlemanWunschNames/master?filepath=example.ipynb)
 
-# Needleman Wunsch Names
 This repo provides code to apply the Needleman-Wunsch algorithm to match ordered sequences of strings (Japanese company names were the original use case, hence the repo's name) using Levenshtein distance as a scoring metric.
 
 # Example
